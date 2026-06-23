@@ -16,15 +16,23 @@ export interface BusInterface {
   voltageV: number;
 }
 
+export interface PassiveCircuitComponent {
+  type: "capacitor" | "resistor" | "inductor" | "ferrite";
+  value: string;
+  spec: string;
+  placement: string;
+}
+
 export interface PassiveCircuit {
   label: string;
   why: string;
-  components: {
-    type: "capacitor" | "resistor" | "inductor" | "ferrite";
-    value: string;
-    spec: string;
-    placement: string;
-  }[];
+  components: PassiveCircuitComponent[];
+}
+
+export interface SchematicPin {
+  name: string;
+  type: "power" | "ground" | "digital" | "analog" | "bus";
+  side: "left" | "right" | "top" | "bottom";
 }
 
 export interface Component {
@@ -57,11 +65,7 @@ export interface Component {
   };
   passiveCircuits: PassiveCircuit[];
   packageType: string;
-  schematicPins: {
-    name: string;
-    type: "power" | "ground" | "digital" | "analog" | "bus";
-    side: "left" | "right" | "top" | "bottom";
-  }[];
+  schematicPins: SchematicPin[];
   datasheetUrl: string;
   tags: string[];
   compatibleWith: string[];

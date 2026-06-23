@@ -1,0 +1,52 @@
+{
+  "id": "bh1750-rohm",
+  "name": "BH1750FVI",
+  "category": "sensor",
+  "subcategory": "light-ambient",
+  "manufacturer": "ROHM Semiconductor",
+  "partNumber": "BH1750FVI-TR",
+  "priceCents": 50,
+  "buyUrl": "https://www.lcsc.com/product-detail/BH1750FVI-TR_C78960.html",
+  "supplyVoltageMin": 2.4,
+  "supplyVoltageMax": 3.6,
+  "powerStates": [
+    { "label": "Power Down", "currentMa": 0.001, "voltageV": 3.3, "notes": "No measurement, register reset" },
+    { "label": "One-Time H-Resolution", "currentMa": 0.12, "voltageV": 3.3, "notes": "Single measurement at 1 lux resolution, then auto power down" },
+    { "label": "Continuous H-Resolution", "currentMa": 0.12, "voltageV": 3.3, "notes": "Measurement every 120ms, 1 lux resolution" }
+  ],
+  "interfaces": [
+    { "protocol": "I2C", "role": "peripheral", "defaultAddress": "0x23", "altAddresses": ["0x5C"], "maxSpeedKhz": 400, "voltageV": 3.3 }
+  ],
+  "sensor": {
+    "measures": ["light"],
+    "accuracyNotes": "1-65535 lux range, ±20% accuracy, 1 lux resolution in H-resolution mode"
+  },
+  "passiveCircuits": [
+    {
+      "label": "VCC Decoupling",
+      "why": "Absorbs current transient when measurement cycle starts. The BH1750 internal ADC draws a short current spike; without decoupling this can appear as a false light reading due to VCC ripple.",
+      "components": [
+        { "type": "capacitor", "value": "100nF", "spec": "X5R ceramic 10V", "placement": "VCC pin, trace <1mm" }
+      ]
+    },
+    {
+      "label": "ADDR Pin Pulldown",
+      "why": "ADDR pin must be at a defined logic level to select I2C address. Floating ADDR causes address instability between power cycles. Pull low for 0x23 (default), high for 0x5C.",
+      "components": [
+        { "type": "resistor", "value": "10kΩ", "spec": "1%, 0.1W", "placement": "ADDR pin to GND (for address 0x23)" }
+      ]
+    }
+  ],
+  "packageType": "WSOF-6I",
+  "schematicPins": [
+    { "name": "VCC", "type": "power", "side": "left" },
+    { "name": "GND", "type": "ground", "side": "left" },
+    { "name": "ADDR", "type": "digital", "side": "left" },
+    { "name": "SDA", "type": "bus", "side": "right" },
+    { "name": "SCL", "type": "bus", "side": "right" },
+    { "name": "DVI", "type": "digital", "side": "bottom" }
+  ],
+  "datasheetUrl": "https://www.mouser.com/datasheet/2/348/bh1750fvi-e-186247.pdf",
+  "tags": ["light", "ambient-light", "lux", "i2c", "ultra-low-power", "rohm", "sensor"],
+  "compatibleWith": ["nrf52840-mdbt50q", "esp32c3-mini", "stm32l073-nucleo"]
+}

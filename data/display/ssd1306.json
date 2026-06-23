@@ -1,0 +1,46 @@
+{
+  "id": "ssd1306-oled",
+  "name": "SSD1306 OLED 128×64",
+  "category": "display",
+  "subcategory": "oled",
+  "manufacturer": "Solomon Systech / Generic Module",
+  "partNumber": "SSD1306",
+  "priceCents": 200,
+  "buyUrl": "https://www.lcsc.com/product-detail/SSD1306_C7461003.html",
+  "supplyVoltageMin": 3.3,
+  "supplyVoltageMax": 5.0,
+  "powerStates": [
+    { "label": "Sleep (display off)", "currentMa": 0.001, "voltageV": 3.3, "notes": "Display off command issued, RAM retained" },
+    { "label": "Active (partial fill)", "currentMa": 4.0, "voltageV": 3.3, "notes": "~25% pixels on, typical UI" },
+    { "label": "Active (full white)", "currentMa": 20.0, "voltageV": 3.3, "notes": "All 128×64 pixels on — worst case power" }
+  ],
+  "interfaces": [
+    { "protocol": "I2C", "role": "peripheral", "defaultAddress": "0x3C", "altAddresses": ["0x3D"], "maxSpeedKhz": 400, "voltageV": 3.3 }
+  ],
+  "passiveCircuits": [
+    {
+      "label": "VCC Charge Pump Capacitor",
+      "why": "The SSD1306 internal charge pump generates 7.5V for the OLED panel from 3.3V. The external capacitor (C2 in datasheet) stores charge for the pump. Wrong value causes display flicker or failure to initialize.",
+      "components": [
+        { "type": "capacitor", "value": "4.7µF", "spec": "X5R ceramic 10V", "placement": "C2 pin of SSD1306, <2mm trace" }
+      ]
+    },
+    {
+      "label": "VDD Decoupling",
+      "why": "Logic supply decoupling prevents I2C noise from coupling into the display controller during pixel refresh cycles.",
+      "components": [
+        { "type": "capacitor", "value": "100nF", "spec": "X5R ceramic 10V", "placement": "VDD pin, trace <1mm" }
+      ]
+    }
+  ],
+  "packageType": "Module (0.96\" OLED, 4-pin breakout)",
+  "schematicPins": [
+    { "name": "VCC", "type": "power", "side": "left" },
+    { "name": "GND", "type": "ground", "side": "left" },
+    { "name": "SDA", "type": "bus", "side": "right" },
+    { "name": "SCL", "type": "bus", "side": "right" }
+  ],
+  "datasheetUrl": "https://cdn-shop.adafruit.com/datasheets/SSD1306.pdf",
+  "tags": ["display", "oled", "128x64", "i2c", "low-power", "monochrome", "solomon-systech"],
+  "compatibleWith": ["nrf52840-mdbt50q", "esp32c3-mini", "bme280-bosch", "bh1750-rohm"]
+}

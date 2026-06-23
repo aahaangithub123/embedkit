@@ -1,0 +1,67 @@
+{
+  "id": "esp32c3-mini",
+  "name": "ESP32-C3-Mini-1",
+  "category": "mcu",
+  "subcategory": "wifi-ble",
+  "manufacturer": "Espressif Systems",
+  "partNumber": "ESP32-C3-MINI-1-N4",
+  "priceCents": 250,
+  "buyUrl": "https://www.lcsc.com/product-detail/ESP32-C3-MINI-1_C2838502.html",
+  "supplyVoltageMin": 3.0,
+  "supplyVoltageMax": 3.6,
+  "powerStates": [
+    { "label": "Deep Sleep", "currentMa": 0.005, "voltageV": 3.3, "notes": "ULP coprocessor off, RTC memory retained" },
+    { "label": "Modem Sleep (CPU active)", "currentMa": 2.0, "voltageV": 3.3, "notes": "Wi-Fi modem off, CPU running at 80MHz" },
+    { "label": "BLE Advertising", "currentMa": 13.0, "voltageV": 3.3, "notes": "BLE 5.0, 0dBm TX, 1s interval" },
+    { "label": "BLE TX Peak", "currentMa": 130.0, "voltageV": 3.3, "notes": "Maximum BLE TX power +9dBm" },
+    { "label": "Wi-Fi RX", "currentMa": 80.0, "voltageV": 3.3, "notes": "802.11n, 20MHz, connected" },
+    { "label": "Wi-Fi TX Peak", "currentMa": 280.0, "voltageV": 3.3, "notes": "802.11b 1Mbps, +21dBm, peak burst" }
+  ],
+  "interfaces": [
+    { "protocol": "I2C", "role": "controller", "maxSpeedKhz": 400, "voltageV": 3.3 },
+    { "protocol": "SPI", "role": "controller", "maxSpeedKhz": 60000, "voltageV": 3.3 },
+    { "protocol": "UART", "role": "both", "maxSpeedKhz": 5000, "voltageV": 3.3 },
+    { "protocol": "USB", "role": "both", "voltageV": 3.3 },
+    { "protocol": "ADC", "role": "peripheral", "voltageV": 3.3 }
+  ],
+  "mcu": {
+    "cpuMhz": 160,
+    "flashKb": 4096,
+    "ramKb": 400,
+    "gpioPins": 22,
+    "adcChannels": 6,
+    "hasUsb": true,
+    "hasBluetooth": true,
+    "hasWifi": true
+  },
+  "passiveCircuits": [
+    {
+      "label": "3V3 Rail Decoupling",
+      "why": "Wi-Fi TX peaks at 280mA with ~10ns edges. Without bulk + ceramic decoupling, VDD3P3 droops 200mV+ during TX bursts, causing packet corruption and brownout resets.",
+      "components": [
+        { "type": "capacitor", "value": "10µF", "spec": "X5R ceramic 10V", "placement": "VDD3P3 rail, <3mm from module" },
+        { "type": "capacitor", "value": "100nF", "spec": "X5R ceramic 10V", "placement": "VDD3P3 pin, trace <0.5mm" }
+      ]
+    },
+    {
+      "label": "EN Pin RC Filter",
+      "why": "The EN (chip enable) pin must rise slowly on power-up to avoid boot loops. The RC filter ensures monotonic rise above 0.75V threshold after VDD is stable.",
+      "components": [
+        { "type": "resistor", "value": "10kΩ", "spec": "1%, 0.1W", "placement": "EN pin to 3.3V rail" },
+        { "type": "capacitor", "value": "1µF", "spec": "X5R ceramic 10V", "placement": "EN pin to GND" }
+      ]
+    }
+  ],
+  "packageType": "Module (castellated, 13.2x16.6mm)",
+  "schematicPins": [
+    { "name": "VDD3P3", "type": "power", "side": "left" },
+    { "name": "GND", "type": "ground", "side": "left" },
+    { "name": "IO0-IO10", "type": "digital", "side": "right" },
+    { "name": "IO18/USB_D-", "type": "digital", "side": "top" },
+    { "name": "IO19/USB_D+", "type": "digital", "side": "top" },
+    { "name": "EN", "type": "digital", "side": "bottom" }
+  ],
+  "datasheetUrl": "https://www.espressif.com/sites/default/files/documentation/esp32-c3-mini-1_datasheet_en.pdf",
+  "tags": ["wifi", "ble", "bluetooth-5", "risc-v", "low-cost", "espressif", "module", "iot"],
+  "compatibleWith": ["bme280-bosch", "bh1750-rohm", "ssd1306-oled", "tp4056-charger"]
+}

@@ -1,0 +1,66 @@
+{
+  "id": "sx1262-semtech",
+  "name": "SX1262",
+  "category": "radio",
+  "subcategory": "lora",
+  "manufacturer": "Semtech",
+  "partNumber": "SX1262IMLTRT",
+  "priceCents": 400,
+  "buyUrl": "https://www.lcsc.com/product-detail/SX1262IMLTRT_C2687951.html",
+  "supplyVoltageMin": 1.8,
+  "supplyVoltageMax": 3.7,
+  "powerStates": [
+    { "label": "Sleep (cold start)", "currentMa": 0.00035, "voltageV": 3.3, "notes": "Config lost, lowest power" },
+    { "label": "Sleep (warm start)", "currentMa": 0.0006, "voltageV": 3.3, "notes": "Config retained in retention memory" },
+    { "label": "Standby RC", "currentMa": 0.6, "voltageV": 3.3, "notes": "RC oscillator, SPI active, ready in 3.5ms" },
+    { "label": "RX Continuous", "currentMa": 4.6, "voltageV": 3.3, "notes": "LoRa RX mode, waiting for packet" },
+    { "label": "TX 14dBm", "currentMa": 17.0, "voltageV": 3.3, "notes": "LoRa TX, PA at +14dBm — use for short range" },
+    { "label": "TX 22dBm (peak)", "currentMa": 118.0, "voltageV": 3.3, "notes": "Maximum power, HP PA, requires external PA supply" }
+  ],
+  "interfaces": [
+    { "protocol": "SPI", "role": "peripheral", "maxSpeedKhz": 16000, "voltageV": 3.3 },
+    { "protocol": "GPIO", "role": "peripheral", "voltageV": 3.3 }
+  ],
+  "passiveCircuits": [
+    {
+      "label": "RF Matching Network",
+      "why": "The SX1262 output impedance is 50Ω differential. The matching network transforms this to 50Ω single-ended for the antenna port. Wrong values detune the PA and reduce range by 10dB+.",
+      "components": [
+        { "type": "inductor", "value": "3.9nH", "spec": "0402 RF, Q>30 at 900MHz", "placement": "RFO pin, within 2mm" },
+        { "type": "capacitor", "value": "8.2pF", "spec": "C0G/NP0 ceramic, 50V", "placement": "Shunt to GND after inductor" }
+      ]
+    },
+    {
+      "label": "VBAT Decoupling",
+      "why": "LoRa TX at 22dBm draws 118mA in <1µs pulses. VBAT must be rock-solid during TX or the frequency drifts mid-packet, causing receiver CRC failures.",
+      "components": [
+        { "type": "capacitor", "value": "100µF", "spec": "Electrolytic or polymer, 10V", "placement": "VBAT pin, within 5mm" },
+        { "type": "capacitor", "value": "100nF", "spec": "X5R ceramic 10V", "placement": "VBAT pin, trace <0.5mm" }
+      ]
+    },
+    {
+      "label": "TXCO Supply Filter",
+      "why": "The SX1262 TXCO output must be clean. Noise on DIO3 (used as TCXO supply) causes frequency error on the transmitted carrier.",
+      "components": [
+        { "type": "capacitor", "value": "100nF", "spec": "X5R ceramic 10V", "placement": "DIO3 to GND, TCXO supply pin" }
+      ]
+    }
+  ],
+  "packageType": "QFN-24 (4x4mm)",
+  "schematicPins": [
+    { "name": "VDD", "type": "power", "side": "left" },
+    { "name": "VBAT", "type": "power", "side": "left" },
+    { "name": "GND", "type": "ground", "side": "left" },
+    { "name": "NSS", "type": "digital", "side": "right" },
+    { "name": "MOSI", "type": "bus", "side": "right" },
+    { "name": "MISO", "type": "bus", "side": "right" },
+    { "name": "SCK", "type": "bus", "side": "right" },
+    { "name": "BUSY", "type": "digital", "side": "top" },
+    { "name": "DIO1", "type": "digital", "side": "top" },
+    { "name": "NRESET", "type": "digital", "side": "bottom" },
+    { "name": "RFO", "type": "analog", "side": "right" }
+  ],
+  "datasheetUrl": "https://semtech.com/uploads/documents/DS_SX1261-2_V2.1.pdf",
+  "tags": ["lora", "long-range", "900mhz", "868mhz", "915mhz", "ism", "low-power", "semtech", "radio", "aes-128"],
+  "compatibleWith": ["nrf52840-mdbt50q", "esp32c3-mini", "stm32l073-nucleo"]
+}

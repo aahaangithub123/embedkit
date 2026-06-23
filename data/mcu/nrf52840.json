@@ -1,0 +1,66 @@
+{
+  "id": "nrf52840-mdbt50q",
+  "name": "nRF52840 (MDBT50Q Module)",
+  "category": "mcu",
+  "subcategory": "bluetooth-le",
+  "manufacturer": "Raytac / Nordic Semiconductor",
+  "partNumber": "MDBT50Q-1MV2",
+  "priceCents": 800,
+  "buyUrl": "https://www.lcsc.com/product-detail/MDBT50Q-1MV2_C2681544.html",
+  "supplyVoltageMin": 1.7,
+  "supplyVoltageMax": 3.6,
+  "powerStates": [
+    { "label": "System Off (Deep Sleep)", "currentMa": 0.004, "voltageV": 3.0, "notes": "RAM retained, GPIO wake only" },
+    { "label": "System On Sleep", "currentMa": 0.004, "voltageV": 3.0, "notes": "RTC running, CPU halted, 32kHz clock" },
+    { "label": "BLE Advertising (1s interval)", "currentMa": 4.6, "voltageV": 3.0, "notes": "Advertising on all 3 channels, 0dBm TX" },
+    { "label": "BLE Connected", "currentMa": 4.8, "voltageV": 3.0, "notes": "7.5ms connection interval, 0dBm" },
+    { "label": "CPU Active 64MHz", "currentMa": 3.8, "voltageV": 3.0, "notes": "No radio, full clock speed, peripherals on" }
+  ],
+  "interfaces": [
+    { "protocol": "I2C", "role": "controller", "maxSpeedKhz": 400, "voltageV": 3.3 },
+    { "protocol": "SPI", "role": "controller", "maxSpeedKhz": 32000, "voltageV": 3.3 },
+    { "protocol": "UART", "role": "both", "maxSpeedKhz": 1000, "voltageV": 3.3 },
+    { "protocol": "USB", "role": "both", "voltageV": 3.3 },
+    { "protocol": "ADC", "role": "peripheral", "voltageV": 3.3 }
+  ],
+  "mcu": {
+    "cpuMhz": 64,
+    "flashKb": 1024,
+    "ramKb": 256,
+    "gpioPins": 48,
+    "adcChannels": 8,
+    "hasUsb": true,
+    "hasBluetooth": true,
+    "hasWifi": false
+  },
+  "passiveCircuits": [
+    {
+      "label": "VDD Decoupling",
+      "why": "The nRF52840 draws sharp current spikes during radio TX bursts (~100ns rise time). Without local decoupling, these spikes cause VDD to droop, which corrupts radio timing and can trigger the brownout detector.",
+      "components": [
+        { "type": "capacitor", "value": "100nF", "spec": "X5R ceramic, 10V", "placement": "VDD pin, trace <0.5mm" },
+        { "type": "capacitor", "value": "10µF", "spec": "X5R ceramic, 10V", "placement": "Module power rail, within 5mm" }
+      ]
+    },
+    {
+      "label": "DCDC Enable",
+      "why": "The MDBT50Q module uses an internal DC-DC converter that achieves 80% efficiency vs 55% for LDO mode. This reduces active current by ~30%. Requires L1 (10µH) on the DEC4 pin.",
+      "components": [
+        { "type": "inductor", "value": "10µH", "spec": "≥150mA, DCR<0.5Ω, Murata LQH3NPN100", "placement": "DEC4 pin to DCCH pin, <5mm loop area" }
+      ]
+    }
+  ],
+  "packageType": "Module (castellated, 10x14.9mm)",
+  "schematicPins": [
+    { "name": "VDD", "type": "power", "side": "left" },
+    { "name": "GND", "type": "ground", "side": "left" },
+    { "name": "P0.00-P0.47", "type": "digital", "side": "right" },
+    { "name": "SWDIO", "type": "digital", "side": "bottom" },
+    { "name": "SWDCLK", "type": "digital", "side": "bottom" },
+    { "name": "USB_D+", "type": "digital", "side": "top" },
+    { "name": "USB_D-", "type": "digital", "side": "top" }
+  ],
+  "datasheetUrl": "https://www.raytac.com/download/index.php?ICID=MDBT50Q-1MV2",
+  "tags": ["ultra-low-power", "ble", "bluetooth-5", "802.15.4", "thread", "zigbee", "nfc", "nordic", "arm-cortex-m4", "module"],
+  "compatibleWith": ["bme280-bosch", "bh1750-rohm", "sx1262-semtech", "ssd1306-oled", "waveshare-epaper-1in54", "tp4056-charger"]
+}

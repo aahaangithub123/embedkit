@@ -1,0 +1,44 @@
+{
+  "id": "waveshare-epaper-1in54",
+  "name": "Waveshare 1.54\" e-Paper Display",
+  "category": "display",
+  "subcategory": "epaper",
+  "manufacturer": "Waveshare",
+  "partNumber": "1.54inch-e-Paper-Module",
+  "priceCents": 1200,
+  "buyUrl": "https://www.waveshare.com/1.54inch-e-paper-module.htm",
+  "supplyVoltageMin": 3.3,
+  "supplyVoltageMax": 3.3,
+  "powerStates": [
+    { "label": "Deep Sleep", "currentMa": 0.001, "voltageV": 3.3, "notes": "Image retained on display — zero power to hold image" },
+    { "label": "Full Refresh Active", "currentMa": 26.4, "voltageV": 3.3, "notes": "200×200px full refresh, ~2 second duration" },
+    { "label": "Partial Refresh Active", "currentMa": 15.0, "voltageV": 3.3, "notes": "Partial update, ~0.3 second, may cause ghosting if overused" }
+  ],
+  "interfaces": [
+    { "protocol": "SPI", "role": "peripheral", "maxSpeedKhz": 2000, "voltageV": 3.3 },
+    { "protocol": "GPIO", "role": "peripheral", "voltageV": 3.3 }
+  ],
+  "passiveCircuits": [
+    {
+      "label": "SPI Signal Integrity",
+      "why": "The e-paper controller (GDEH0154D67) requires clean SPI edges during the multi-second refresh cycle. Any glitch during a write causes partial corruption that persists until next full refresh.",
+      "components": [
+        { "type": "capacitor", "value": "100nF", "spec": "X5R ceramic 10V", "placement": "VCC pin on module header, within 5mm" }
+      ]
+    }
+  ],
+  "packageType": "Module with FPC connector (37.32×37.32mm active area)",
+  "schematicPins": [
+    { "name": "VCC", "type": "power", "side": "left" },
+    { "name": "GND", "type": "ground", "side": "left" },
+    { "name": "DIN/MOSI", "type": "bus", "side": "right" },
+    { "name": "CLK/SCK", "type": "bus", "side": "right" },
+    { "name": "CS", "type": "digital", "side": "right" },
+    { "name": "DC", "type": "digital", "side": "top" },
+    { "name": "RST", "type": "digital", "side": "bottom" },
+    { "name": "BUSY", "type": "digital", "side": "bottom" }
+  ],
+  "datasheetUrl": "https://www.waveshare.com/wiki/1.54inch_e-Paper_Module",
+  "tags": ["display", "epaper", "e-ink", "ultra-low-power", "spi", "bistable", "waveshare", "200x200"],
+  "compatibleWith": ["nrf52840-mdbt50q", "esp32c3-mini"]
+}

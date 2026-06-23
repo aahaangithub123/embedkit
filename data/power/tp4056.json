@@ -1,0 +1,59 @@
+{
+  "id": "tp4056-charger",
+  "name": "TP4056 LiPo Charger",
+  "category": "power",
+  "subcategory": "battery-charger",
+  "manufacturer": "TPOWER / NanJing Top Power ASIC Corp",
+  "partNumber": "TP4056",
+  "priceCents": 30,
+  "buyUrl": "https://www.lcsc.com/product-detail/TP4056_C16581.html",
+  "supplyVoltageMin": 4.0,
+  "supplyVoltageMax": 8.0,
+  "powerStates": [
+    { "label": "Charging (1A)", "currentMa": 1000.0, "voltageV": 5.0, "notes": "Maximum charge rate, RPROG=1kΩ. INPUT current, not battery current" },
+    { "label": "Charging (500mA)", "currentMa": 500.0, "voltageV": 5.0, "notes": "USB-safe rate, RPROG=2kΩ" },
+    { "label": "Trickle Charge", "currentMa": 50.0, "voltageV": 5.0, "notes": "Battery below 3.0V threshold, 1/10 of RPROG current" },
+    { "label": "Charge Complete (standby)", "currentMa": 0.055, "voltageV": 5.0, "notes": "Battery full, maintaining 4.2V float, STDBY LED on" },
+    { "label": "Shutdown", "currentMa": 0.002, "voltageV": 5.0, "notes": "CE pin low, no charging activity" }
+  ],
+  "interfaces": [
+    { "protocol": "GPIO", "role": "peripheral", "voltageV": 5.0 }
+  ],
+  "passiveCircuits": [
+    {
+      "label": "RPROG Charge Rate Resistor",
+      "why": "Sets the maximum charge current. I_charge = 1000 / RPROG(kΩ) in mA. This is NOT optional — without RPROG, charge current is undefined and can exceed 1A damaging the battery. Use 2kΩ for USB-safe 500mA.",
+      "components": [
+        { "type": "resistor", "value": "2kΩ", "spec": "1%, 0.1W, 0402", "placement": "PROG pin to GND — THIS SETS CHARGE CURRENT" }
+      ]
+    },
+    {
+      "label": "Input Decoupling",
+      "why": "USB input has significant impedance over a cable. The input cap absorbs switching transients from the TP4056 internal linear regulator, preventing USB enumeration failures.",
+      "components": [
+        { "type": "capacitor", "value": "10µF", "spec": "X5R ceramic 16V", "placement": "VCC pin to GND, <3mm" },
+        { "type": "capacitor", "value": "100nF", "spec": "X5R ceramic 16V", "placement": "VCC pin to GND, <0.5mm" }
+      ]
+    },
+    {
+      "label": "Battery Output Decoupling",
+      "why": "Provides a stable BAT output for the downstream LDO or buck converter. Prevents charge-current switching noise from propagating into the MCU supply.",
+      "components": [
+        { "type": "capacitor", "value": "10µF", "spec": "X5R ceramic 10V", "placement": "BAT pin to GND, <3mm" }
+      ]
+    }
+  ],
+  "packageType": "SOP-8",
+  "schematicPins": [
+    { "name": "VCC", "type": "power", "side": "left" },
+    { "name": "GND", "type": "ground", "side": "left" },
+    { "name": "PROG", "type": "analog", "side": "left" },
+    { "name": "CE", "type": "digital", "side": "left" },
+    { "name": "BAT", "type": "power", "side": "right" },
+    { "name": "CHRG", "type": "digital", "side": "right" },
+    { "name": "STDBY", "type": "digital", "side": "right" }
+  ],
+  "datasheetUrl": "https://dlnmh9ip6v2uc.cloudfront.net/datasheets/Prototyping/TP4056.pdf",
+  "tags": ["charger", "lipo", "lithium-ion", "battery", "usb", "linear-charger", "tp4056", "power"],
+  "compatibleWith": ["nrf52840-mdbt50q", "esp32c3-mini", "stm32l073-nucleo"]
+}

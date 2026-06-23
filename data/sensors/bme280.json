@@ -1,0 +1,57 @@
+{
+  "id": "bme280-bosch",
+  "name": "BME280",
+  "category": "sensor",
+  "subcategory": "environmental",
+  "manufacturer": "Bosch Sensortec",
+  "partNumber": "BME280",
+  "priceCents": 160,
+  "buyUrl": "https://www.lcsc.com/product-detail/BME280_C92489.html",
+  "supplyVoltageMin": 1.71,
+  "supplyVoltageMax": 3.6,
+  "powerStates": [
+    { "label": "Sleep Mode", "currentMa": 0.0001, "voltageV": 3.3, "notes": "No measurement, registers retained" },
+    { "label": "Forced Mode (1 sample)", "currentMa": 0.71, "voltageV": 3.3, "notes": "Single temp+pressure+humidity measurement, then returns to sleep. typ 2ms." },
+    { "label": "Normal Mode 1Hz", "currentMa": 3.6, "voltageV": 3.3, "notes": "Continuous sampling at 1Hz, osrs x1 for all sensors" }
+  ],
+  "interfaces": [
+    { "protocol": "I2C", "role": "peripheral", "defaultAddress": "0x76", "altAddresses": ["0x77"], "maxSpeedKhz": 400, "voltageV": 3.3 },
+    { "protocol": "SPI", "role": "peripheral", "maxSpeedKhz": 10000, "voltageV": 3.3 }
+  ],
+  "sensor": {
+    "measures": ["temperature", "humidity", "pressure"],
+    "accuracyNotes": "Temp ±1°C, humidity ±3% RH, pressure ±1 hPa absolute. Humidity response time 1s.",
+    "dofCount": 3
+  },
+  "passiveCircuits": [
+    {
+      "label": "VDD/VDDIO Decoupling",
+      "why": "BME280 draws current spikes during measurement bursts. Bosch datasheet mandates 100nF on both VDD and VDDIO to prevent supply noise from corrupting ADC readings.",
+      "components": [
+        { "type": "capacitor", "value": "100nF", "spec": "X5R ceramic, 10V", "placement": "VDD pin, trace <0.5mm" },
+        { "type": "capacitor", "value": "100nF", "spec": "X5R ceramic, 10V", "placement": "VDDIO pin, trace <0.5mm" }
+      ]
+    },
+    {
+      "label": "I2C Pull-ups",
+      "why": "I2C is open-drain. Without pull-ups the bus lines float high-impedance and no communication is possible. 4.7kΩ gives acceptable rise time at 400kHz with typical PCB capacitance of 50-100pF.",
+      "components": [
+        { "type": "resistor", "value": "4.7kΩ", "spec": "1%, 0.1W", "placement": "SDA line to 3.3V" },
+        { "type": "resistor", "value": "4.7kΩ", "spec": "1%, 0.1W", "placement": "SCL line to 3.3V" }
+      ]
+    }
+  ],
+  "packageType": "LGA-8 (2.5x2.5mm)",
+  "schematicPins": [
+    { "name": "VDD", "type": "power", "side": "left" },
+    { "name": "VDDIO", "type": "power", "side": "left" },
+    { "name": "GND", "type": "ground", "side": "left" },
+    { "name": "SDI/SDA", "type": "bus", "side": "right" },
+    { "name": "SCK/SCL", "type": "bus", "side": "right" },
+    { "name": "SDO", "type": "digital", "side": "right" },
+    { "name": "CSB", "type": "digital", "side": "bottom" }
+  ],
+  "datasheetUrl": "https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bme280-ds002.pdf",
+  "tags": ["temperature", "humidity", "pressure", "environmental", "i2c", "spi", "bosch", "ultra-low-power", "sensor"],
+  "compatibleWith": ["nrf52840-mdbt50q", "esp32c3-mini", "stm32l073-nucleo"]
+}
