@@ -119,14 +119,15 @@ app/page.tsx — landing page, client component, localStorage → /configure
 - All other infrastructure verified correct: endpoint URL, request format, JSON parse, error handling, nullConstraints fallback
 
 ## Day 4 — Constraint Panel + Filtering Engine
-- [x] lib/engine/constraintSolver.ts — voltage + power + price + wireless filters
-- [x] lib/engine/optimizer.ts — weighted scorer (power 0.4 + price 0.3 + ecosystem 0.2 + tags 0.1)
-- [x] lib/engine/busAnalyzer.ts — VOLT-001, I2C-001, I2C-002 conflict detection
-- [x] components/configurator/ConstraintBar.tsx — slider UI, localStorage read/write
-- [x] components/configurator/ComponentPicker.tsx — filtered catalog, add/remove buttons
-- [x] app/configure/page.tsx — wires engine + UI, manages build state
+- [x] lib/engine/constraintSolver.ts — Step 1 Complete: 5 filters, railV param defaults 3.3V, wireless logic passes MCUs and non-radio components
+- [x] lib/engine/optimizer.ts — Step 2 Complete: 4-weight score, log-scale normalization for power+price, tag relevance neutral at 0.5 when no tags
+- [x] lib/engine/busAnalyzer.ts — Step 3 Complete: VOLT-001 (error), I2C-001 (error), I2C-002 (warning) — 3 Tier 1 rules. railV param defaults 3.3V. Returns [] for clean build.
+- [x] components/configurator/ConstraintBar.tsx — Step 4 Complete: 4 controls (power/price sliders + wireless/battery button groups). Stateless — parent owns localStorage write. MATLAB aesthetic tokens applied.
+- [x] components/configurator/ComponentPicker.tsx — Step 5 Complete: ranked list with category tabs, score bar visualization, add/remove wired to props. Zero internal state except activeCategory tab.
+- [x] app/configure/page.tsx — Step 6 Complete (Day 4 DONE): full reactive pipeline wired. constraintSolver→optimizer→busAnalyzer run in useMemo. localStorage write on every state change. Two-column layout: picker left, build + conflicts right. hydration guard prevents SSR mismatch.
 - [x] tsconfig.json — added path mappings (@/*), components/** include
 - [x] /configure renders live at localhost:3000/configure; scores ranked 0.0–1.0
+- Day 4 checkpoint met: engine layer operational. /configure page reactive. Ready for Day 5 powerCalculator + BuildList.
 
 ## Day 3 — AI Layer + Landing Page
 ### AI Architecture

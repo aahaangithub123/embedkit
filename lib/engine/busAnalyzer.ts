@@ -1,73 +1,84 @@
 import { Component } from '../data/schema';
 
+export type ConflictRuleId = 'VOLT-001' | 'I2C-001' | 'I2C-002';
+export type ConflictSeverity = 'error' | 'warning';
+
 export interface Conflict {
-  ruleId: 'VOLT-001' | 'I2C-001' | 'I2C-002';
-  severity: 'error' | 'warning';
+  ruleId: ConflictRuleId;
+  severity: ConflictSeverity;
   message: string;
   componentIds: string[];
 }
 
-export function busAnalyzer(components: Component[]): Conflict[] {
+export function busAnalyzer(selected: Component[], railV: number = 3.3): Conflict[] {
   const conflicts: Conflict[] = [];
-  const RAIL_VOLTAGE = 3.3;
 
-  // VOLT-001: component voltage doesn't match 3.3V rail
-  for (const comp of components) {
-    if (comp.supplyVoltageMin > RAIL_VOLTAGE || comp.supplyVoltageMax < RAIL_VOLTAGE) {
+  // VOLT-001: component supply range does not span railV
+  for (const comp of selected) {
+    if (comp.supplyVoltageMax < railV || comp.supplyVoltageMin > railV) {
       conflicts.push({
         ruleId: 'VOLT-001',
         severity: 'error',
-        message: `${comp.name} requires ${comp.supplyVoltageMin}–${comp.supplyVoltageMax}V, not compatible with 3.3V rail`,
+        message: `VOLT-001: ${comp.name} requires ${comp.supplyVoltageMin}–${comp.supplyVoltageMax}V. Current rail is ${railV}V.`,
         componentIds: [comp.id],
       });
     }
   }
 
-  // I2C conflicts: address collisions
-  const i2cComponents = components.filter(c =>
-    c.interfaces.some(i => i.protocol === 'I2C' && i.role === 'peripheral')
-  );
-
-  for (let i = 0; i < i2cComponents.length; i++) {
-    for (let j = i + 1; j < i2cComponents.length; j++) {
-      const comp1 = i2cComponents[i];
-      const comp2 = i2cComponents[j];
-
-      const iface1 = comp1.interfaces.find(i => i.protocol === 'I2C');
-      const iface2 = comp2.interfaces.find(i => i.protocol === 'I2C');
-
-      if (!iface1 || !iface2) continue;
-
-      const addrs1 = [iface1.defaultAddress, ...(iface1.altAddresses || [])];
-      const addrs2 = [iface2.defaultAddress, ...(iface2.altAddresses || [])];
-
-      const hasOverlap = addrs1.some(a => a && addrs2.includes(a));
-
-      if (hasOverlap) {
-        conflicts.push({
-          ruleId: 'I2C-001',
-          severity: 'error',
-          message: `I2C address conflict: ${comp1.name} and ${comp2.name} both use same address`,
-          componentIds: [comp1.id, comp2.id],
+  // Collect all I2C peripheral interfaces across all selected components
+  interface I2CEntry { comp: Component; defaultAddress: string; altAddresses: string[] }
+  const i2cEntries: I2CEntry[] = [];
+  for (const comp of selected) {
+    for (const iface of comp.interfaces) {
+      if (iface.protocol === 'I2C' && iface.role !== 'controller' && iface.defaultAddress) {
+        i2cEntries.push({
+          comp,
+          defaultAddress: iface.defaultAddress,
+          altAddresses: iface.altAddresses ?? [],
         });
       }
     }
   }
 
-  // I2C-002: duplicate component (same ID in build twice)
-  const idCounts = new Map<string, string[]>();
-  for (const comp of components) {
-    idCounts.set(comp.id, [...(idCounts.get(comp.id) || []), comp.id]);
+  // Group entries by defaultAddress
+  const byAddress = new Map<string, I2CEntry[]>();
+  for (const entry of i2cEntries) {
+    const group = byAddress.get(entry.defaultAddress) ?? [];
+    group.push(entry);
+    byAddress.set(entry.defaultAddress, group);
   }
 
-  for (const [id, ids] of idCounts) {
-    if (ids.length > 1) {
-      conflicts.push({
-        ruleId: 'I2C-002',
-        severity: 'warning',
-        message: `Duplicate component: ${id} added multiple times to build`,
-        componentIds: ids,
-      });
+  for (const [address, group] of byAddress) {
+    if (group.length < 2) continue;
+
+    // Check every pair at this address
+    for (let i = 0; i < group.length; i++) {
+      for (let j = i + 1; j < group.length; j++) {
+        const a = group[i];
+        const b = group[j];
+        const aHasAlt = a.altAddresses.length > 0;
+        const bHasAlt = b.altAddresses.length > 0;
+
+        if (!aHasAlt && !bHasAlt) {
+          // I2C-001: hard conflict, no resolution possible
+          conflicts.push({
+            ruleId: 'I2C-001',
+            severity: 'error',
+            message: `I2C-001: Address conflict — ${a.comp.name} and ${b.comp.name} both at ${address}. No alternative address available.`,
+            componentIds: [a.comp.id, b.comp.id],
+          });
+        } else {
+          // I2C-002: at least one side can move — suggest the one with alts
+          const mover = bHasAlt ? b : a;
+          const other = mover === b ? a : b;
+          conflicts.push({
+            ruleId: 'I2C-002',
+            severity: 'warning',
+            message: `I2C-002: ${mover.comp.name} can move to ${mover.altAddresses[0]} by pulling its ADDR pin LOW.`,
+            componentIds: [other.comp.id, mover.comp.id],
+          });
+        }
+      }
     }
   }
 

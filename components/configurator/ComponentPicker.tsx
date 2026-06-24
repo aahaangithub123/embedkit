@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { ScoredComponent } from '@/lib/engine/optimizer';
 
 interface ComponentPickerProps {
@@ -9,67 +10,98 @@ interface ComponentPickerProps {
   onRemove: (id: string) => void;
 }
 
-export function ComponentPicker({
+export default function ComponentPicker({
   scored,
   selectedIds,
   onAdd,
   onRemove,
 }: ComponentPickerProps) {
-  return (
-    <div className="border border-gray-300 rounded-lg p-6 bg-white">
-      <h2 className="text-lg font-semibold mb-6">Components</h2>
+  const [activeCategory, setActiveCategory] = useState('all');
 
-      <div className="space-y-3 max-h-96 overflow-y-auto">
-        {scored.length === 0 ? (
-          <p className="text-gray-500">No components match constraints</p>
-        ) : (
-          scored.map(({ component, score, reasons }) => {
-            const isSelected = selectedIds.includes(component.id);
-            return (
-              <div
-                key={component.id}
-                className={`border rounded-lg p-4 ${
-                  isSelected
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 bg-white hover:bg-gray-50'
-                }`}
-              >
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <h3 className="font-semibold">{component.name}</h3>
-                    <p className="text-xs text-gray-600">
-                      {component.category} • ${(component.priceCents / 100).toFixed(2)}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm font-medium">
-                      Score: {(score * 100).toFixed(0)}%
-                    </div>
-                    <button
-                      onClick={() => (isSelected ? onRemove(component.id) : onAdd(component.id))}
-                      className={`mt-2 px-3 py-1 rounded text-sm font-medium ${
-                        isSelected
-                          ? 'bg-red-500 text-white hover:bg-red-600'
-                          : 'bg-green-500 text-white hover:bg-green-600'
-                      }`}
-                    >
-                      {isSelected ? 'Remove' : 'Add'}
-                    </button>
-                  </div>
+  const categories = [
+    'all',
+    ...Array.from(new Set(scored.map(s => s.component.category))),
+  ];
+
+  const visible =
+    activeCategory === 'all'
+      ? scored
+      : scored.filter(s => s.component.category === activeCategory);
+
+  return (
+    <div>
+      {/* Category tabs */}
+      <div className="flex gap-4 px-4 border-b border-[#2a2d3a]">
+        {categories.map(cat => (
+          <button
+            key={cat}
+            onClick={() => setActiveCategory(cat)}
+            className={`pb-2 pt-3 text-xs font-mono uppercase tracking-wider ${
+              activeCategory === cat
+                ? 'border-b-2 border-[#60a5fa] text-[#e2e4f0]'
+                : 'text-[#6b7099]'
+            }`}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
+
+      {/* Component rows */}
+      {visible.length === 0 ? (
+        <p className="text-[#6b7099] text-sm text-center py-8">
+          No components match current constraints
+        </p>
+      ) : (
+        visible.map(({ component, score }) => {
+          const isSelected = selectedIds.includes(component.id);
+          const minCurrentMa = Math.min(...component.powerStates.map(s => s.currentMa));
+
+          return (
+            <div
+              key={component.id}
+              className="flex items-center justify-between px-4 py-2 border-b border-[#2a2d3a] hover:bg-[#1a1d27]"
+            >
+              {/* Left */}
+              <div className="flex items-center gap-3">
+                <div>
+                  <span className="text-[#e2e4f0] text-sm font-sans">{component.name}</span>
+                  <span className="text-[9px] uppercase font-mono text-[#6b7099] bg-[#2a2d3a] px-1 rounded ml-2">
+                    {component.category}
+                  </span>
+                </div>
+                <span className="text-[#6b7099] text-xs font-mono">⚡ {minCurrentMa}mA</span>
+                <span className="text-[#6b7099] text-xs font-mono">
+                  ${(component.priceCents / 100).toFixed(2)}
+                </span>
+              </div>
+
+              {/* Right */}
+              <div className="flex items-center gap-3">
+                {/* Score bar */}
+                <div className="w-12 h-[3px] bg-[#2a2d3a] rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-[#4ade80]"
+                    style={{ width: `${score * 100}%` }}
+                  />
                 </div>
 
-                {reasons.length > 0 && (
-                  <div className="text-xs text-gray-700 space-y-1">
-                    {reasons.map((reason, i) => (
-                      <div key={i}>• {reason}</div>
-                    ))}
-                  </div>
-                )}
+                {/* Add / In Build button */}
+                <button
+                  onClick={() => (isSelected ? onRemove(component.id) : onAdd(component.id))}
+                  className={`text-xs font-mono px-3 py-1 bg-[#1a1d27] ${
+                    isSelected
+                      ? 'border border-[#4ade80] text-[#4ade80]'
+                      : 'border border-[#2a2d3a] text-[#60a5fa]'
+                  }`}
+                >
+                  {isSelected ? '✓ IN BUILD' : 'ADD'}
+                </button>
               </div>
-            );
-          })
-        )}
-      </div>
+            </div>
+          );
+        })
+      )}
     </div>
   );
 }

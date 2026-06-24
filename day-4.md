@@ -179,11 +179,24 @@ Build Summary + ConflictPanel update
 - Allows `import { X } from "@/lib/..."` syntax throughout
 
 ## Test Results
-✅ `npx tsc --noEmit` — 0 errors
-✅ `npm run dev` — localhost:3000/configure renders
-✅ Page hydration: localStorage read on mount, components render after hydration
-✅ Slider interaction: values persist to localStorage on change (testable in DevTools)
-✅ Component list: 8 components shown, ranked by score
+✅ `npx tsc --noEmit` — 0 errors (strict mode, all 6 new files)
+✅ Dev server running — port 3000 confirmed LISTENING (Turbopack HMR active)
+✅ /configure returns HTTP 200
+✅ Page hydration guard (`hydrated` state) — returns null until localStorage is read, prevents SSR mismatch
+✅ useMemo chain: allComponents → filtered → scored → conflicts; each re-runs only when its deps change
+✅ localStorage write on every constraint/build change (handleConstraintChange, handleAdd, handleRemove)
+✅ Two-column layout: ComponentPicker (left, scrollable) + build sidebar (right, fixed 320px)
+✅ Conflict panel: error=red ●, warning=orange ▲, per-conflict message from busAnalyzer
+✅ Stats footer: COMPONENTS count + FILTERED n/8 always visible at sidebar bottom
+
+## day4-check.ts Output
+```
+DB: 8 components
+Filtered (no constraints): 7   ← correct: tp4056-charger (4–8V supply) excluded by 3.3V rail
+Top scored: BH1750FVI (0.845)
+Conflicts (empty build): 0
+```
+Note: TP4056 filtered by VOLT-001 is expected — it's a USB 5V charger IC, not a 3.3V logic device. Day 5 rail selector will allow 5V builds to include it.
 
 ## Verification Checklist
 - [x] All 6 new files compile cleanly (TypeScript strict mode)
@@ -200,10 +213,10 @@ Build Summary + ConflictPanel update
 - No debouncing on slider changes — each slider update re-filters entire DB (acceptable for 8 components)
 
 ## Files Created
-- [x] lib/engine/constraintSolver.ts
-- [x] lib/engine/optimizer.ts
-- [x] lib/engine/busAnalyzer.ts
-- [x] components/configurator/ConstraintBar.tsx
-- [x] components/configurator/ComponentPicker.tsx
-- [x] app/configure/page.tsx
+- [x] lib/engine/constraintSolver.ts ✅ Step 1 Complete
+- [x] lib/engine/optimizer.ts ✅ Step 2 Complete
+- [x] lib/engine/busAnalyzer.ts ✅ Step 3 Complete
+- [x] components/configurator/ConstraintBar.tsx ✅ Step 4 Complete
+- [x] components/configurator/ComponentPicker.tsx ✅ Step 5 Complete
+- [x] app/configure/page.tsx ✅ Step 6 Complete
 - [x] tsconfig.json (modified)
