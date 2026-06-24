@@ -1,5 +1,7 @@
 # Day 4 — Constraint Panel + Filtering Engine
 
+## Status: Complete ✅
+
 ## Objective
 Wire the engine layer to the UI. constraintSolver.ts filters the component DB → optimizer.ts ranks results → ConstraintBar.tsx lets user adjust → ComponentPicker.tsx shows live-filtered list. Full reactive loop on slider change.
 
@@ -87,6 +89,50 @@ interface ComponentPickerProps {
   // conflicts = busAnalyzer(selectedComponents)
 }
 ```
+
+## Architecture
+
+### Engine Layer Design Pattern
+All three engine functions are **pure** — deterministic, no side effects, safe for React useMemo:
+- **constraintSolver(components, constraints)** → filtered Component[]
+- **optimizer(filtered, constraints)** → ranked ScoredComponent[] with reasons
+- **busAnalyzer(selectedComponents)** → Conflict[] (only VOLT-001, I2C-001, I2C-002)
+
+No async, no AI calls, no localStorage access — all computation is in-memory.
+
+### Reactive Data Flow (/configure page)
+```
+Slider change
+  ↓
+setConstraints + localStorage.set
+  ↓
+useMemo re-runs:
+  filtered = constraintSolver(allComponents, constraints)
+  scored = optimizer(filtered, constraints)
+  ↓
+ComponentPicker re-renders (sorted by score)
+
+Add/Remove component
+  ↓
+setSelectedIds + localStorage.set
+  ↓
+useMemo re-runs:
+  selectedComps = filter allComponents by selectedIds
+  conflicts = busAnalyzer(selectedComps)
+  ↓
+Build Summary + ConflictPanel update
+```
+
+### localStorage Keys (Day 4)
+```ts
+"embedkit:constraints"  // ConstraintSet — written by /configure sliders
+"embedkit:build"        // string[] of component IDs — written by Add/Remove buttons
+```
+
+### Voltage Rail Assumption
+- constraintSolver currently hardcodes 3.3V rail for VOLT-001 voltage check
+- This assumption is sufficient for Day 4 (all 8 components support 3.3V)
+- Day 5 will add rail selector UI; constraintSolver already structured to accept railV parameter
 
 ## Implementation Notes
 
