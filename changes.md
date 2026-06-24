@@ -58,3 +58,97 @@ Note: ESP32-C3 Wi-Fi TX peak 280mA — largest single-component current draw in 
 ### Step 1 Complete
 Created /lib/data/schema.ts — Component interface v1.0
 8 TypeScript interfaces defined: PowerState, BusInterface, PassiveCircuitComponent, PassiveCircuit, SchematicPin, Component + mcu/sensor subtype objects
+
+Day 3 — AI Layer + Landing Page
+
+AI Architecture
+
+
+Pattern: Client → POST /api/parse-intent → gemini.ts → Gemini API → ConstraintSet JSON
+API key lives ONLY in server-side route handler (process.env.AI_API_KEY). Never sent to browser.
+Provider swap point: lib/ai/provider.ts interface. Swap gemini.ts for groq.ts by changing parseIntent.ts import + ai.config.ts provider field.
+AI failure is non-blocking: if /api/parse-intent returns 500, landing page shows error inline. Sliders on /configure still work manually.
+
+
+New Types
+
+
+ConstraintSet added to lib/data/schema.ts — consumed by Day 4 constraintSolver.ts
+
+
+localStorage Key Established
+
+
+Key: embedkit:constraints → JSON string of ConstraintSet
+Set: on successful parse-intent response, before redirect
+Read: by /configure page (Day 4) to pre-fill sliders
+
+
+Routing Flow
+
+
+/ → user types → POST /api/parse-intent → localStorage.set → router.push('/configure')
+/configure (Day 4) reads localStorage → pre-fills constraint sliders
+
+
+Files Added
+
+
+lib/ai/provider.ts
+lib/ai/gemini.ts
+lib/ai/parseIntent.ts
+lib/ai/provider.ts — AIProvider interface + nullConstraints fallback
+lib/ai/gemini.ts — GeminiProvider (OpenAI-compat endpoint)
+lib/ai/parseIntent.ts — orchestrator, failure-safe
+app/layout.tsx — root layout, JetBrains Mono font via Google Fonts
+app/api/parse-intent/route.ts — POST proxy, API key server-only
+app/page.tsx — landing page, client component, localStorage → /configure
+
+## Day 3 — Debug Pass
+
+### tsconfig fixes
+- Added `app/**/*.ts`, `app/**/*.tsx`, `next-env.d.ts` to include
+- Added `.next/dev/types/**/*.ts` to exclude — Next.js 16 auto-manages include but TS6 cannot resolve `.js`→`.tsx` in generated `typeof import()` expressions; exclude survives Next.js rewrites
+
+### .env.local fix
+- Removed malformed second line (`"AI_API_KEY=your_gemini_key_here"`) — was invalid dotenv that could corrupt key parse
+
+### API key blocker (user action required)
+- Current key (`AQ.` prefix) returns HTTP 404 from Gemini API — wrong key type
+- Replace with Google AI Studio key (starts `AIza`) at https://aistudio.google.com/app/apikey
+- All other infrastructure verified correct: endpoint URL, request format, JSON parse, error handling, nullConstraints fallback
+
+## Day 4 — Constraint Panel + Filtering Engine
+- [x] lib/engine/constraintSolver.ts — voltage + power + price + wireless filters
+- [x] lib/engine/optimizer.ts — weighted scorer (power 0.4 + price 0.3 + ecosystem 0.2 + tags 0.1)
+- [x] lib/engine/busAnalyzer.ts — VOLT-001, I2C-001, I2C-002 conflict detection
+- [x] components/configurator/ConstraintBar.tsx — slider UI, localStorage read/write
+- [x] components/configurator/ComponentPicker.tsx — filtered catalog, add/remove buttons
+- [x] app/configure/page.tsx — wires engine + UI, manages build state
+- [x] tsconfig.json — added path mappings (@/*), components/** include
+- [x] /configure renders live at localhost:3000/configure; scores ranked 0.0–1.0
+
+## Day 3 — AI Layer + Landing Page
+### AI Architecture
+- Pattern: Client → POST /api/parse-intent → gemini.ts → Gemini API → ConstraintSet JSON
+- API key lives ONLY in server-side route handler (process.env.AI_API_KEY). Never sent to browser.
+- Provider swap point: lib/ai/provider.ts interface. Swap by changing parseIntent.ts import + ai.config.ts provider field.
+- AI failure is non-blocking: returns nullConstraints, sliders on /configure still work manually.
+
+### New Types
+- ConstraintSet added to lib/data/schema.ts — consumed by Day 4 constraintSolver.ts
+
+### localStorage Key Established
+- Key: `embedkit:constraints` → JSON.stringify(ConstraintSet)
+- Set: after successful /api/parse-intent response, before redirect
+- Read: /configure page (Day 4) pre-fills constraint sliders
+
+### Routing Flow Established
+/ → POST /api/parse-intent → localStorage.set → router.push('/configure')
+
+### Files Added (Day 3)
+- lib/ai/provider.ts
+- lib/ai/gemini.ts
+- lib/ai/parseIntent.ts
+- app/api/parse-intent/route.ts
+- app/page.tsx
