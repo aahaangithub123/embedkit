@@ -4,8 +4,8 @@
 Live Vercel URL + correct folder structure + ai.config.ts + schema.ts.
 
 ## Checklist
-- [ ] create-next-app scaffold (not yet run)
-- [ ] Folder structure (Blueprint §3) (blocked on scaffold)
+- [ ] create-next-app scaffold (not yet run — app/ and components/ stubbed manually)
+- [x] Folder structure (Blueprint §3) — app/, components/, lib/, config/, data/{mcu,sensors,radio,display,power,passive-circuits}
 - [x] lib/data/schema.ts
 - [x] config/ai.config.ts
 - [x] .env.local + .gitignore verified
